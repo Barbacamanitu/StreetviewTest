@@ -7,7 +7,55 @@
   </head>
   <body>
     <div id="map"></div>
+    <div id="controls">
+      <button type="button" id="light">Light Post</button>
+      <button type="button" id="house">House</button>
+    </div>
 </canvas>
+<script type="x-shader/x-vertex" id="vertexShader">  
+  // These have global scope
+
+
+varying vec3 pos;
+
+void main()
+{
+   pos=(modelViewMatrix *
+   vec4(position,1.0)).xyz;
+ gl_Position = projectionMatrix *
+                modelViewMatrix *
+                vec4(position,1.0);
+}
+
+
+</script>
+<script type="x-shader/x-fragment" id="fragmentShader">  
+varying vec3 pos;
+uniform vec3 color;
+
+ float Map(float x, float in_min, float in_max, float out_min, float out_max)
+    {
+        return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+    }
+
+void main() {
+  float maxAlpha = .75;
+  float minAlpha = .1;
+  float minDis = 5.0;
+  float maxDis = 25.0;
+
+
+
+   
+
+  float dis = length(pos);
+  float alpha = 1.0- Map(dis,minDis,maxDis,minAlpha,maxAlpha);
+  gl_FragColor = vec4(color,alpha);
+}
+
+</script>
+      
+
 <script
   src="https://code.jquery.com/jquery-3.1.1.min.js"
   integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="

@@ -25,3 +25,14 @@ body {
     left: 0;
     top: 0;
 }
+
+#controls {
+    width: 150px;
+    height: 100px;
+    position: absolute;
+    overflow:visible;
+    pointer-events:all;
+    z-index: 200;
+    left: 50px;
+    top: 50px;
+}

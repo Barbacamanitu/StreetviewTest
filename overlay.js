@@ -19,10 +19,13 @@ function initOverlay()
             this.scene = null;
             this.renderer = null;
             this.mesh = null;
+            this.cylinder = null;
+            this.temp = null;
 
 
 
             $(window).resize(function(){self.resizeRenderer();});
+            
         }; 
 
     
@@ -73,36 +76,12 @@ function initOverlay()
              this.camera.aspect = mapSize.width/mapSize.height;
         }
 
-        MyOverlay.prototype.drawCircle = function(x,y, radius = 10)
-        { 
-          var context = this.context;
-          context.beginPath();
-          context.arc(x,y, radius, 0, 2 * Math.PI, false);
-          context.fillStyle = 'green';
-          context.fill();
-          context.lineWidth = 5;
-          context.strokeStyle = '#003300';
-          context.stroke();
-      
-        };
-
-        MyOverlay.prototype.createCanvas = function()
-        {
-            var canvas = document.createElement("canvas");  
-            canvas.style.position = 'absolute';            
-            var panes = this.getPanes();
-            panes.overlayLayer.appendChild(canvas);
-            this.canvas = canvas;
-            this.context = this.canvas.getContext('2d');
-            this.resize();
-        };
-
         MyOverlay.prototype.createRenderer = function()
         {
                 var size = this.getMapSize();
                 var geometry, material;
                 this.camera = new THREE.PerspectiveCamera(90, size.width / size.height, 0.1, 10000);
-                this.camera.position.set(0,2.5,0);
+                this.camera.position.set(0,0,0);
             
                 this.scene = new THREE.Scene();
             
@@ -118,25 +97,106 @@ function initOverlay()
                 //34.81381594348493, -87.67265878988076
                 this.mesh = new THREE.Mesh(geometry, material);
                 this.scene.add(this.mesh);
-                this.mesh.setLatLng({lat: 34.803441, lng:-87.674732});
+                this.mesh.setLatLng(new WorldCoord(thePos.lat,thePos.lng,1));
 
 
 
-                var cylinderg = new THREE.CylinderGeometry( 0.2, 0.2, 5, 10 );
+                var cylinderg = new THREE.CylinderGeometry( 0.1, 0.1, 4, 10 );
                 var mat = new THREE.MeshBasicMaterial( {color: 0x7cd85b, transparent: true, opacity: 0.5} );
-                var cylinder = new THREE.Mesh( cylinderg, mat );
-                cylinder.setLatLng({lat: 34.803441, lng:-87.674732},5);
-                this.scene.add( cylinder );
+                this.cylinder = new THREE.Mesh( cylinderg, mat );
+                this.cylinder.setLatLng(new WorldCoord(thePos.lat,thePos.lng,-1));
+                this.scene.add( this.cylinder );
+
+
+
+
+
+
+
+                var myHouse  = new THREE.BufferGeometry();
+               
+                var vertices = [];
+                var loc = panorama.getPosition();
+                var source = {lat: 34.813818, lng: -87.672830};
+                vertices[0] = latLngToRelativeCartesian(source,pts[0]);
+                vertices[1] = latLngToRelativeCartesian(source,pts[1]);
+                vertices[2] = latLngToRelativeCartesian(source,pts[2]);
+                vertices[3] = latLngToRelativeCartesian(source,pts[3]);
+                //vertices[4] = vertices[3].clone();
+
+               
+
+
+                var verts = new Float32Array(18);
+                for (var i = 0; i < 3; i++)
+                {
+                      verts[i*3 + 0] = vertices[i].x;
+                      verts[i*3 + 1] = -3;
+                      verts[i*3 + 2] = vertices[i].z;
+                      console.log(vertices[i]);
+                }
+
+               
+
+                      verts[3*3 + 0] = vertices[2].x;
+                      verts[3*3 + 1] = -3;
+                      verts[3*3 + 2] = vertices[2].z;
+
+                      verts[4*3 + 0] = vertices[3].x;
+                      verts[4*3 + 1] = -3;
+                      verts[4*3 + 2] = vertices[3].z;
+
+                      verts[5*3 + 0] = vertices[0].x;
+                      verts[5*3 + 1] = -3;
+                      verts[5*3 + 2] = vertices[0].z;
+
+
+                   
+                      
+
+               myHouse.addAttribute( 'position', new THREE.BufferAttribute( verts, 3 ) );
+
+                //myHouse.computeBoundingSphere();
+
+
+
+
+                var uniforms = {  
+  color: { type: "c", value: new THREE.Color( 0x7cd85b ) },
+};
+
+  // My float attribute
+                var attributes = {  
+                  size: { type: 'f', value: [] },
+                };
                 
 
+                for (var i=0; i < 5; i++) {  
+                  attributes.size.value[i] = 5 + Math.floor(Math.random() * 10);
+                }
+                omaterial = new THREE.ShaderMaterial({  
+                uniforms: uniforms,
+                vertexShader: document.getElementById('vertexShader').textContent,
+                fragmentShader: document.getElementById('fragmentShader').textContent,
+                transparent: true
+                });
 
+
+
+              
+
+
+
+               this.temp = new THREE.Mesh( myHouse, omaterial);
+                this.scene.add( this.temp );
+                this.temp.setLatLng(new WorldCoord(34.813818, -87.672830,0));
+                
 
                 this.renderer = new THREE.WebGLRenderer({alpha: true});
                 //this.renderer.setSize(size.width, size.height);
                 this.resizeRenderer();
                 var panes = this.getPanes();
-                panes.overlayLayer.appendChild(this.renderer.domElement);  
-               
+                panes.overlayLayer.appendChild(this.renderer.domElement);                 
 
         };
 
@@ -160,14 +220,23 @@ function initOverlay()
 
         //THREE.js additions
 
-        THREE.Object3D.prototype.setLatLng = function(latlng, z = 0)
+        THREE.Object3D.prototype.setLatLng = function(worldCoord)
         {
                 var loc = panorama.getPosition();
                 var source = {lat: loc.lat(), lng: loc.lng()};
-                var d = latLngToRelativeCartesian(source,latlng);
-                d.multiplyScalar(1);
-                this.position.set(d.x,z,d.z);
+                var d = latLngToRelativeCartesian(source,worldCoord);
+                console.log(d);
+                console.log(worldCoord);
+                this.position.set(d.x,worldCoord.z,d.z);
+                this.worldCoord = worldCoord; 
         }
+
+        THREE.Object3D.prototype.updatePosition = function()
+        {
+            this.setLatLng(this.worldCoord);
+        }
+
+
 
        function latLngToRelativeCartesian(src,dest)
         {
@@ -189,6 +258,13 @@ function initOverlay()
         }
 
      
+}
+
+function WorldCoord(lat,lng,z=0)
+{
+    this.lat = lat;
+    this.lng = lng;
+    this.z = z;
 }
 
 
