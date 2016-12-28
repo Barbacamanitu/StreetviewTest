@@ -10,7 +10,7 @@ function initOverlay()
             this.zindex = 0;
             this._div = null;
             this.mapDiv = mapDiv;
-            var self = this;
+            
 
             var camera, scene, renderer;
             var geometry, material, mesh;
@@ -22,7 +22,7 @@ function initOverlay()
             this.cylinder = null;
             this.temp = null;
 
-
+            var self = this;
 
             $(window).resize(function(){self.resizeRenderer();});
             
@@ -50,7 +50,6 @@ function initOverlay()
         };
 
         MyOverlay.prototype.onAdd = function(){
-            console.log("add");
             //this.createCanvas();
             this.createRenderer();
             this.animate();
@@ -70,7 +69,7 @@ function initOverlay()
         };
 
         MyOverlay.prototype.resizeRenderer = function()
-        {
+        {5
              var mapSize = this.getMapSize();
              this.renderer.setSize(mapSize.width,mapSize.height);
              this.camera.aspect = mapSize.width/mapSize.height;
@@ -87,9 +86,10 @@ function initOverlay()
             
                 var cube = .5;
                 geometry = new THREE.BoxGeometry(cube,cube,cube);
-                material = new THREE.MeshBasicMaterial({
-                    color: 0xff0000,
-                    wireframe: true
+                material = new THREE.MeshStandardMaterial({
+                    color: new THREE.Color(0xc0dd0c),
+                    metalness: 1,
+                    roughness: 0.5
                 });
 
               
@@ -108,7 +108,14 @@ function initOverlay()
                 this.scene.add( this.cylinder );
 
 
+                // White directional light at half intensity shining from the top.
+                var directionalLight = new THREE.DirectionalLight( 0xffffff, .5 );
+                directionalLight.position.set( 0, 1, 0 );
+                this.scene.add( directionalLight );
 
+                var light = new THREE.PointLight( 0xffffff,1,100 ); // soft white light
+                light.position.set(0,0,0);
+                this.scene.add( light );
 
 
 
@@ -126,12 +133,12 @@ function initOverlay()
 
                
 
-
+                var yy = 3;
                 var verts = new Float32Array(18);
                 for (var i = 0; i < 3; i++)
                 {
                       verts[i*3 + 0] = vertices[i].x;
-                      verts[i*3 + 1] = -3;
+                      verts[i*3 + 1] = -yy;
                       verts[i*3 + 2] = vertices[i].z;
                       console.log(vertices[i]);
                 }
@@ -139,15 +146,15 @@ function initOverlay()
                
 
                       verts[3*3 + 0] = vertices[2].x;
-                      verts[3*3 + 1] = -3;
+                      verts[3*3 + 1] = -yy;
                       verts[3*3 + 2] = vertices[2].z;
 
                       verts[4*3 + 0] = vertices[3].x;
-                      verts[4*3 + 1] = -3;
+                      verts[4*3 + 1] = -yy;
                       verts[4*3 + 2] = vertices[3].z;
 
                       verts[5*3 + 0] = vertices[0].x;
-                      verts[5*3 + 1] = -3;
+                      verts[5*3 + 1] = -yy;
                       verts[5*3 + 2] = vertices[0].z;
 
 
@@ -155,6 +162,8 @@ function initOverlay()
                       
 
                myHouse.addAttribute( 'position', new THREE.BufferAttribute( verts, 3 ) );
+               myHouse.computeFaceNormals();
+               myHouse.computeVertexNormals();
 
                 //myHouse.computeBoundingSphere();
 
@@ -162,8 +171,8 @@ function initOverlay()
 
 
                 var uniforms = {  
-  color: { type: "c", value: new THREE.Color( 0x7cd85b ) },
-};
+                color: { type: "c", value: new THREE.Color( 0xe23b0d ) },
+                };
 
   // My float attribute
                 var attributes = {  
@@ -187,7 +196,7 @@ function initOverlay()
 
 
 
-               this.temp = new THREE.Mesh( myHouse, omaterial);
+               this.temp = new THREE.Mesh( myHouse, material);
                 this.scene.add( this.temp );
                 this.temp.setLatLng(new WorldCoord(34.813818, -87.672830,0));
                 

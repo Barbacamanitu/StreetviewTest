@@ -43,11 +43,7 @@ void main() {
   float minAlpha = .1;
   float minDis = 5.0;
   float maxDis = 25.0;
-
-
-
-   
-
+  
   float dis = length(pos);
   float alpha = 1.0- Map(dis,minDis,maxDis,minAlpha,maxAlpha);
   gl_FragColor = vec4(color,alpha);

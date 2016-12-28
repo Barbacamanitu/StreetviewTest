@@ -3,10 +3,20 @@ var overlay;
 var myHouse = {lat: 34.813818, lng:-87.672830};
 var thePos = {lat: 34.803520, lng:-87.674789};
 var myLight = thePos;
-var pts = [{lat: 34.813880, lng: -87.672755 },
+
+
+
+/*var pts = [{lat: 34.813880, lng: -87.672755 },
                 {lat: 34.813951, lng: -87.672915 },
                 {lat: 34.813863, lng: -87.672991 },
                 {lat: 34.813766, lng: -87.672849 }];
+                */
+
+
+var pts = [{lat: 34.813388, lng: -87.672796},
+{lat: 34.813383, lng: -87.672788},
+{lat: 34.813886, lng: -87.672698},
+{lat: 34.813888, lng: -87.672705}];
 function initialize() 
 {
   var mapDiv = document.getElementById('map');
